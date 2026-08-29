@@ -49,13 +49,15 @@ endif
 # -----------------------------------------
 #   Linker selection
 #
-#   lld is clang-only here: GCC's -flto objects are LLVM-unreadable, so
-#   ld.lld fails the link with "undefined symbol: main". Probed rather than
-#   assumed, since plenty of machines have clang but no lld installed.
+#   LTO is only safe with the LLVM linker. If lld is unavailable, disable
+#   -flto instead of letting clang fall back to the GNU linker and trip the
+#   LLVMgold plugin error seen on MinGW setups.
 # -----------------------------------------
 ifneq ($(findstring clang,$(CXX)),)
-    ifneq ($(findstring LLD,$(shell ld.lld --version 2>&1)),)
+    ifneq ($(wildcard $(COMPILER_DIR)ld.lld.exe),)
         LDFLAGS += -fuse-ld=lld
+    else
+        CXXFLAGS := $(filter-out -flto,$(CXXFLAGS))
     endif
 endif
 ifeq ($(ARCH_DETECTED),)
@@ -139,7 +141,7 @@ clean:
 		$(NAME)-avx2$(SUFFIX) $(NAME)-bmi2$(SUFFIX) $(NAME)-avx512$(SUFFIX)
 
 $(EXE): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(NATIVE) -o $@ $(OBJECTS) $(LIBS) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(LDFLAGS) -o $@ $(OBJECTS) $(LIBS)
 
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@

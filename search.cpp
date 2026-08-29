@@ -55,12 +55,22 @@ Move run_bench(int depth) {
 int negamax(Board& pos, int depth, int alpha, int beta, Move pv[], int& pv_len) {
     nodes++;
 
+    bool pv_node = beta - alpha > 1;
+    bool is_in_check = in_check(pos, pos.stm);
+    int static_eval = evaluate(pos);
+
     if (time_up())
         return 0;
 
     if (depth == 0) {
         pv_len = 0;
         return evaluate(pos);
+    }
+
+    // Reverse Futility Pruning
+    int margin = 100 * depth;
+    if (depth <= 4 && !is_in_check && !pv_node && static_eval - margin >= beta) {
+        return static_eval;
     }
 
     MoveList list;
@@ -73,15 +83,14 @@ int negamax(Board& pos, int depth, int alpha, int beta, Move pv[], int& pv_len) 
         return 0;
     }
     // Stable, so that tied moves keep generation order rather than whatever
- // the standard library's introsort happens to produce. Keeps node counts
- // identical across compilers/platforms, as OpenBench requires.
+    // the standard library's introsort happens to produce. Keeps node counts
+    // identical across compilers/platforms, as OpenBench requires.
     std::stable_sort(list.moves, list.moves + list.size,
         [&](Move a, Move b) {
             return move_score(a) > move_score(b);
         });
 
     int bestScore = -100000000;
-    Move bestMove = 0;
 
     Move childPV[128];
     int childPV_len = 0;
@@ -99,7 +108,6 @@ int negamax(Board& pos, int depth, int alpha, int beta, Move pv[], int& pv_len) 
 
         if (score > bestScore) {
             bestScore = score;
-            bestMove = m;
 
             pv[0] = m;
             for (int j = 0; j < childPV_len; j++)

@@ -11,7 +11,7 @@ uint64_t now_ns() {
     ).count();
 }
 
-static void show(const char* name, uint64_t ns, uint64_t calls) {
+[[maybe_unused]] static void show(const char* name, uint64_t ns, uint64_t calls) {
     if (!calls) return;
     double per = double(ns) / double(calls);
     std::cout << name << ": "
