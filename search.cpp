@@ -69,7 +69,7 @@ int negamax(Board& pos, int depth, int alpha, int beta, Move pv[], int& pv_len) 
 
     // Reverse Futility Pruning
     int margin = 100 * depth;
-    if (depth <= 4 && !is_in_check && !pv_node && static_eval - margin >= beta) {
+    if (depth <= 1 && !is_in_check && !pv_node && static_eval - margin >= beta) {
         return static_eval;
     }
 
