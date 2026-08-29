@@ -336,25 +336,7 @@ int evaluate(const Board& pos) {
                 else if (!usPawn)
                     mg += sign * evalParams.rookSemiOpenFile;
             }
-        }
-
-        // Passed pawns
-        {
-            Bitboard pawns = pos.pieceBB[col][PAWN];
-            Bitboard enemyPawns = pos.pieceBB[!col][PAWN];
-
-            while (pawns) {
-                int sq = pop_lsb(pawns);
-                int rank = (col == WHITE ? sq / 8 : 7 - (sq / 8));
-
-                Bitboard mask = passed_mask[col][sq];
-
-                if (!(enemyPawns & mask)) {
-                    mg += sign * evalParams.passedPawnMG[rank];
-                    eg += sign * evalParams.passedPawnEG[rank];
-                }
-            }
-        }
+        }       
 
         // King safety: pawn shield
         {
