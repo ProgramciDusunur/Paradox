@@ -363,6 +363,11 @@ int negamax(Board& pos, int depth, int ply, int alpha, int beta, Move pv[], int&
 
     int eval = evaluate(pos);
 
+    // Internal Iterivate Reductions
+    if (PvNode && depth >= 6 && !ttMove) {
+        depth--;
+    }
+
     // Reverse Futility Pruning (RFP)
     if (depth <= 6 && !rootNode && !in_check(pos, pos.stm) 
         && !is_decisive(beta) && beta <= eval - 100 * depth)
