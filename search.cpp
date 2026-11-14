@@ -355,6 +355,7 @@ int negamax(Board& pos, int depth, int ply, int alpha, int beta, Move pv[], int&
 
     Move ttMove = 0;
     int ttScore = 0;
+    const bool is_in_check = in_check(pos, pos.stm);
 
     if (tt_probe(pos.hash, depth, ply, alpha, beta, ttScore, ttMove)) {
         if (ply != 0 && (!PvNode || multiPV == 1))
@@ -364,10 +365,9 @@ int negamax(Board& pos, int depth, int ply, int alpha, int beta, Move pv[], int&
     int eval = evaluate(pos);
 
     // Reverse Futility Pruning (RFP)
-    if (depth <= 6 && !rootNode && !in_check(pos, pos.stm) 
+    if (depth <= 6 && !rootNode && !is_in_check
         && !is_decisive(beta) && beta <= eval - 100 * depth)
-        return eval;
-
+        return eval;    
 
     int bestScore = -VALUE_INFINITE;
 
@@ -442,11 +442,18 @@ int negamax(Board& pos, int depth, int ply, int alpha, int beta, Move pv[], int&
 
         uint64_t moveNodesStart = nodes;
 
-        State st;
-        pos.make_move(m, st);
+        State st;        
 
         bool isCheck = in_check(pos, pos.stm);
         bool quiet = !capture && !promotion && !isCheck;
+
+        int futility_margin = eval + 100 * depth;
+        // Futility Pruning
+        if (depth <= 4 && quiet && !rootNode && !is_in_check && futility_margin <= alpha) {            
+            continue;
+        }
+
+        pos.make_move(m, st);
 
         if (quiet)
             quietMoves[quietMoveCount++] = m;
