@@ -442,7 +442,8 @@ int negamax(Board& pos, int depth, int ply, int alpha, int beta, Move pv[], int&
 
         uint64_t moveNodesStart = nodes;
 
-        State st;        
+        State st;
+        pos.make_move(m, st);
 
         bool isCheck = in_check(pos, pos.stm);
         bool quiet = !capture && !promotion && !isCheck;
@@ -450,10 +451,10 @@ int negamax(Board& pos, int depth, int ply, int alpha, int beta, Move pv[], int&
         int futility_margin = eval + 100 * depth;
         // Futility Pruning
         if (depth <= 4 && quiet && !rootNode && !is_in_check && futility_margin <= alpha) {            
+            pos.unmake_move(st);            
             continue;
         }
-
-        pos.make_move(m, st);
+        
 
         if (quiet)
             quietMoves[quietMoveCount++] = m;
